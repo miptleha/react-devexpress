@@ -24,6 +24,8 @@ const TagBoxCustomStore = () => {
     const store = useMemo(() => {
         console.log('🏗️ Создание CustomStore (один раз)');
 
+        const cache = {};
+
         return new CustomStore({
             key: 'ID',
 
@@ -34,6 +36,24 @@ const TagBoxCustomStore = () => {
                 const params = new URLSearchParams();
 
                 if (loadOptions.filter) {
+                    let result = [];
+                    let notFound = false;
+                    for (let i = 0; i < loadOptions.filter.length; i += 2) {
+                        let id = loadOptions.filter[i][2];
+                        if (!cache[id]) {
+                            notFound = true;
+                            break;
+                        }
+                        result.push(cache[id]);
+                    }
+                    console.log('В кэше найдено:', result.length, 'элементов, есть ли не найденные:', notFound)
+                    if (!notFound) {
+                        return Promise.resolve({
+                            data: result,
+                            totalCount: result.length
+                        });
+                    }
+
                     params.append('filter', JSON.stringify(loadOptions.filter));
                     console.log('📤 Отправляем filter:', JSON.stringify(loadOptions.filter));
                 }
@@ -54,7 +74,10 @@ const TagBoxCustomStore = () => {
                 return fetch(url)
                     .then(res => res.json())
                     .then(data => {
-                        console.log('📥 Получено:', data.data.length, 'записей, всего:', data.totalCount);
+                        for (let i = 0; i < data.data.length; i++) {
+                            cache[data.data[i]["ID"]] = data.data[i];
+                        }
+                        console.log('📥 Получено:', data.data.length, 'записей, всего:', data.totalCount, 'размер кэша:' + Object.keys(cache).length);
                         addLog('load response', loadOptions, { count: data.data.length, total: data.totalCount });
                         return {
                             data: data.data,
@@ -118,10 +141,10 @@ const TagBoxCustomStore = () => {
                         searchMode="contains"
                         placeholder="Введите имя или email..."
                         showClearButton={true}
-                        showSelectionControls={false}
+                        showSelectionControls={true}
                         maxDisplayedTags={5}
                         width="100%"
-                        /* не работает вместе с showSelectionControls, а до внутренней не знаю как добраться, поместил крутилку рядом лейблом
+                        /* не работает вместе с showSelectionControls, а до внутренней крутилки не знаю как добраться, поместил крутилку рядом лейблом
                         itemRender={(item, itemIndex) => {
                             if (isLoading) {
                                 if (itemIndex === 0)
