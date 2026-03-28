@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "checkJs": true,
+    "jsx": "react-jsx"
+  },
+  "include": [
+    "client/src/**/*",
+    "server/**/*"
+  ]
+}

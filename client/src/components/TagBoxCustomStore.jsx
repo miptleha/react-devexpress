@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, Badge, Table } from 'react-bootstrap';
 import Spinner from "react-bootstrap/esm/Spinner";
 import TagBox from 'devextreme-react/tag-box';
@@ -19,6 +19,35 @@ const TagBoxCustomStore = () => {
         };
         setCallLog(prev => [logEntry, ...prev].slice(0, 10));
     };
+
+    const loadSelectedDetails = async (selectedIds) => {
+        if (!selectedIds || selectedIds.length === 0) {
+            setSelectedDetails([]);
+            return;
+        }
+
+        try {
+            const items = await Promise.all(
+                selectedIds.map(id =>
+                    fetch(`/api/dataservice/${id}`)
+                        .then(res => res.json())
+                        .catch(error => {
+                            console.error(`Ошибка загрузки элемента ${id}:`, error);
+                            return null;
+                        })
+                )
+            );
+            setSelectedDetails(items.filter(i => i !== null));
+        } catch (error) {
+            console.error('Ошибка при загрузке деталей:', error);
+        }
+    };
+
+    // Загружаем детали для начальных значений при монтировании компонента
+    useEffect(() => {
+        console.log('📦 Загрузка деталей для начальных значений:', selected);
+        loadSelectedDetails(selected);
+    }, []); // Пустой массив зависимостей - выполнится только при монтировании
 
     // Используем useMemo чтобы store создавался один раз и не пересоздавался при каждом рендере
     const store = useMemo(() => {
@@ -101,16 +130,7 @@ const TagBoxCustomStore = () => {
         const newSelected = e.value || [];
         setSelected(newSelected);
 
-        // Загружаем детали выбранных
-        if (newSelected.length > 0) {
-            Promise.all(
-                newSelected.map(id => fetch(`/api/dataservice/${id}`).then(res => res.json()))
-            ).then(items => {
-                setSelectedDetails(items.filter(i => i !== null));
-            });
-        } else {
-            setSelectedDetails([]);
-        }
+        loadSelectedDetails(newSelected);
     };
 
     return (
@@ -144,15 +164,15 @@ const TagBoxCustomStore = () => {
                         showSelectionControls={true}
                         maxDisplayedTags={5}
                         width="100%"
-                        /* не работает вместе с showSelectionControls, а до внутренней крутилки не знаю как добраться, поместил крутилку рядом лейблом
-                        itemRender={(item, itemIndex) => {
-                            if (isLoading) {
-                                if (itemIndex === 0)
-                                    return (<div style={{ textAlign: 'center' }}>Загрузка...</div>);
-                                return (<div></div>);
-                            }
-                            return (<div>{item.FullName}</div>);
-                        }*/
+                    /* не работает вместе с showSelectionControls, а до внутренней крутилки не знаю как добраться, поместил крутилку рядом лейблом
+                    itemRender={(item, itemIndex) => {
+                        if (isLoading) {
+                            if (itemIndex === 0)
+                                return (<div style={{ textAlign: 'center' }}>Загрузка...</div>);
+                            return (<div></div>);
+                        }
+                        return (<div>{item.FullName}</div>);
+                    }*/
                     />
 
                     <div className="mt-3 small text-muted">
