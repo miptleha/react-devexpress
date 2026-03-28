@@ -4,7 +4,7 @@
   "description": "React app with DevExtreme, Vite and Express",
   "main": "server/server.js",
   "scripts": {
-    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "start": "concurrently --names \"SERVER,CLIENT\" --prefix-colors \"blue,green\" \"npm run server\" \"npm run client\"",
     "server": "node server/server.js",
     "client": "cd client && npm run dev",
     "install-client": "cd client && npm install",

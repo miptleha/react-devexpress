@@ -1,12 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { Card, Badge, Table } from 'react-bootstrap';
+import Spinner from "react-bootstrap/esm/Spinner";
 import TagBox from 'devextreme-react/tag-box';
 import CustomStore from 'devextreme/data/custom_store';
 
 const TagBoxCustomStore = () => {
-    const [selected, setSelected] = useState([]);
+    const [selected, setSelected] = useState([10, 20, 30]);
     const [selectedDetails, setSelectedDetails] = useState([]);
     const [callLog, setCallLog] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
 
     const addLog = (type, params, result = null) => {
         const logEntry = {
@@ -38,7 +40,10 @@ const TagBoxCustomStore = () => {
 
                 if (loadOptions.take) params.append('take', loadOptions.take);
                 if (loadOptions.skip) params.append('skip', loadOptions.skip);
-                if (loadOptions.searchValue) params.append('searchValue', loadOptions.searchValue);
+                if (loadOptions.searchValue) {
+                    setIsLoading(true);
+                    params.append('searchValue', loadOptions.searchValue);
+                }
 
                 params.append('searchExpr', JSON.stringify(['FullName', 'Email']));
                 params.append('requireTotalCount', 'true');
@@ -60,24 +65,9 @@ const TagBoxCustomStore = () => {
                         console.error('❌ Ошибка:', error);
                         addLog('load error', loadOptions, error.message);
                         return { data: [], totalCount: 0 };
-                    });
-            },
-
-            byKey: (key) => {
-                console.log('🔑 byKey вызван для ID:', key);
-                addLog('byKey', { key });
-
-                return fetch(`/api/dataservice/${key}`)
-                    .then(res => res.json())
-                    .then(item => {
-                        console.log('📥 Получен элемент:', item?.FullName);
-                        addLog('byKey response', { key }, item);
-                        return item;
                     })
-                    .catch(error => {
-                        console.error('❌ Ошибка byKey:', error);
-                        addLog('byKey error', { key }, error.message);
-                        return null;
+                    .finally(() => {
+                        setIsLoading(false);
                     });
             }
         });
@@ -108,6 +98,14 @@ const TagBoxCustomStore = () => {
                     <Badge bg="info" className="ms-2">
                         Выбрано: {selected.length}
                     </Badge>
+                    {isLoading ? (<Spinner
+                        as="span"
+                        animation="border"
+                        size="sm"
+                        role="status"
+                        aria-hidden="true"
+                        className="ms-2"
+                    />) : (<></>)}
                 </Card.Header>
                 <Card.Body>
                     <TagBox
@@ -120,7 +118,18 @@ const TagBoxCustomStore = () => {
                         searchMode="contains"
                         placeholder="Введите имя или email..."
                         showClearButton={true}
+                        showSelectionControls={false}
+                        maxDisplayedTags={5}
                         width="100%"
+                        /* не работает вместе с showSelectionControls, а до внутренней не знаю как добраться, поместил крутилку рядом лейблом
+                        itemRender={(item, itemIndex) => {
+                            if (isLoading) {
+                                if (itemIndex === 0)
+                                    return (<div style={{ textAlign: 'center' }}>Загрузка...</div>);
+                                return (<div></div>);
+                            }
+                            return (<div>{item.FullName}</div>);
+                        }*/
                     />
 
                     <div className="mt-3 small text-muted">

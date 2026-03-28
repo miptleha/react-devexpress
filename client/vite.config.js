@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3000,
-    open: true,
+    open: false,
     proxy: {
       '/api': {
         target: 'http://localhost:5000',
@@ -14,10 +14,6 @@ export default defineConfig({
     }
   },
   build: {
-    sourcemap: true,  // Включаем source maps для продакшн сборки
-  },
-  // Критически важно для отладки в VS Code
-  define: {
-    'process.env.NODE_ENV': '"development"'
+    sourcemap: true,
   }
 })

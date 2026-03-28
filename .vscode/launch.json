@@ -7,15 +7,19 @@
       "request": "launch",
       "cwd": "${workspaceFolder}",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "start"],
+      "runtimeArgs": [
+        "run",
+        "start"
+      ],
       "console": "integratedTerminal",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
       "serverReadyAction": {
         "pattern": "Local:.*http://localhost:([0-9]+)",
         "uriFormat": "http://localhost:%s",
-        "action": "debugWithChrome"
-      },
-      "sourceMapPathOverrides": {
-        "vite:///*": "${workspaceFolder}/client/*"
+        "action": "debugWithChrome",
+        "webRoot": "${workspaceFolder}/client"
       }
     }
   ]
