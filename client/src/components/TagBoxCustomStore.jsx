@@ -1,8 +1,9 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Card, Badge, Table } from 'react-bootstrap';
 import Spinner from "react-bootstrap/esm/Spinner";
 import TagBox from 'devextreme-react/tag-box';
 import CustomStore from 'devextreme/data/custom_store';
+import DataSource from 'devextreme/data/data_source';
 
 const TagBoxCustomStore = () => {
     const [selected, setSelected] = useState([10, 20, 30]);
@@ -55,7 +56,7 @@ const TagBoxCustomStore = () => {
 
         const cache = {};
 
-        return new CustomStore({
+        const store = new CustomStore({
             key: 'ID',
 
             load: (loadOptions) => {
@@ -87,8 +88,8 @@ const TagBoxCustomStore = () => {
                     console.log('📤 Отправляем filter:', JSON.stringify(loadOptions.filter));
                 }
 
-                if (loadOptions.take) params.append('take', loadOptions.take);
-                if (loadOptions.skip) params.append('skip', loadOptions.skip);
+                if (loadOptions.take) params.append('take', loadOptions.take.toString());
+                if (loadOptions.skip) params.append('skip', loadOptions.skip.toString());
                 if (loadOptions.searchValue) {
                     setIsLoading(true);
                     params.append('searchValue', loadOptions.searchValue);
@@ -123,6 +124,18 @@ const TagBoxCustomStore = () => {
                     });
             }
         });
+
+        const dataSource = new DataSource({
+            store,
+            searchExpr: ['FullName', 'Email'],
+            searchOperation: "contains",
+            paginate: true, // Включаем пагинацию для больших наборов данных
+            pageSize: 20 // Размер страницы
+        });
+
+        return dataSource;
+
+
     }, []); // Пустой массив зависимостей = создается один раз
 
     const handleValueChanged = (e) => {
@@ -164,15 +177,15 @@ const TagBoxCustomStore = () => {
                         showSelectionControls={true}
                         maxDisplayedTags={5}
                         width="100%"
-                    /* не работает вместе с showSelectionControls, а до внутренней крутилки не знаю как добраться, поместил крутилку рядом лейблом
-                    itemRender={(item, itemIndex) => {
-                        if (isLoading) {
-                            if (itemIndex === 0)
-                                return (<div style={{ textAlign: 'center' }}>Загрузка...</div>);
-                            return (<div></div>);
-                        }
-                        return (<div>{item.FullName}</div>);
-                    }*/
+                        itemRender={useCallback((item, itemIndex) => {
+                            /*if (isLoading) {
+                                console.log("isLoading", isLoading);
+                                if (itemIndex === 0)
+                                    return (<div style={{ textAlign: 'center' }}>Загрузка...</div>);
+                                return (<div></div>);
+                            }*/
+                            return (<div>{item.FullName} ({item.Age}, {item.Department}, {item.Position})</div>);
+                        }, [/*isLoading*/])}
                     />
 
                     <div className="mt-3 small text-muted">
@@ -252,7 +265,7 @@ const TagBoxCustomStore = () => {
                             ))}
                             {callLog.length === 0 && (
                                 <tr>
-                                    <td colSpan="4" className="text-center text-muted py-3">
+                                    <td colSpan={4} className="text-center text-muted py-3">
                                         Начните вводить текст или выбирать элементы...
                                     </td>
                                 </tr>
