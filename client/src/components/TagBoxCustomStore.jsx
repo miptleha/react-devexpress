@@ -168,7 +168,7 @@ const TagBoxCustomStore = () => {
                         dataSource={store}
                         valueExpr="ID"
                         displayExpr="FullName"
-                        value={selected}
+                        defaultValue={selected}
                         onValueChanged={handleValueChanged}
                         searchEnabled={true}
                         searchMode="contains"
