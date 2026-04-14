@@ -4,6 +4,7 @@ import DataGrid from './components/DataGrid';
 import Dashboard from './components/Dashboard';
 import FormExample from './components/FormExample';
 import TagBoxCustomStore from './components/TagBoxCustomStore';
+import QwenGenerated from './components/QwenGenerated';
 import axios from 'axios';
 
 const API_URL = '/api';
@@ -121,6 +122,10 @@ function App() {
           
           <Tab eventKey="tagbox-cs" title="🏷️ TagBox CustomStore">
             <TagBoxCustomStore />
+          </Tab>
+          
+          <Tab eventKey="qwen-generated" title="🤖 Qwen Generated">
+            <QwenGenerated />
           </Tab>
         </Tabs>
       </Container>
